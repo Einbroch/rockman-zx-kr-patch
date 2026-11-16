@@ -1,9 +1,13 @@
-# 록맨 ZX (NDS) 한글패치
+# 록맨 ZX · 록맨 ZX 어드벤트 (NDS) 한글패치
 
-닌텐도 DS 「ロックマンゼクス」(일본판, ARZJ) 한글패치입니다. 일본판 원문을 새로 번역했습니다.
+닌텐도 DS 「ロックマンゼクス」(일본판, ARZJ)와 「ロックマンゼクス アドベント」(일본판) 한글패치입니다.
+일본판 원문을 새로 번역했습니다.
 롬은 들어 있지 않습니다. 직접 덤프한 일본판 롬에 패치를 적용해 주세요.
 
-록맨 ZX 어드벤트는 아직 작업 전입니다.
+- [록맨 ZX](#록맨-zx) — `patch/zx_ko.xdelta`
+- [록맨 ZX 어드벤트](#록맨-zx-어드벤트) — `patch/zxa_ko.xdelta`
+
+# 록맨 ZX
 
 ## 적용
 
@@ -64,26 +68,81 @@ xdelta3 -d -s "Rockman ZX (J).nds" patch/zx_ko.xdelta "Rockman ZX (K).nds"
   - 버스터 에디트 화면
 - 통과 플레이
 
+# 록맨 ZX 어드벤트
+
+## 적용
+
+| 원본 롬 | 패치 | 결과 |
+|---|---|---|
+| `Rockman ZX Advent (J)` 67,108,864바이트, CRC32 `89C919BC` | `patch/zxa_ko.xdelta` | 67,314,216바이트, CRC32 `32EB5D0C` |
+
+```bash
+xdelta3 -d -s "Rockman ZX Advent (J).nds" patch/zxa_ko.xdelta "Rockman ZX Advent (K).nds"
+```
+
+결과 SHA-1: `B66A9A1E1752602EE583972B1AE197AAD587E7F8`
+
+## 들어간 것
+
+- **대사·시스템 문장 전부**: 그레이 편·애시 편 대사, 헌터 캠프·퀘스트, 아이템·미션·시크릿 디스크 설명, 메뉴 등
+  3,100개 메시지를 번역했습니다(빈 메시지·숫자 표처럼 일본어가 없는 것은 원문 그대로).
+  - 한글은 ZX 와 같은 12px 가변폭 글꼴, 한글 음절 1,017자를 롬 안에 압축해 상주시킵니다.
+  - 표기는 ZX 를 따릅니다(에리어·갤리온·이레이즈 등).
+- **대화창 화자 이름표**: 96명
+- **타이틀**: 로고 「록맨 젝스 / 어드벤트」, 오프닝용 작은 로고, START 안내, 처음부터·이어서·미니게임,
+  난이도(비기너·익스퍼트·매니아), 캐릭터 이름(그레이·애시), 무기 설명(버스터 샷·레이저 샷, 공격·연사)
+- **아래 화면 머리**: 트랜스포메이션·디테일 맵·러프 맵·버스터 에디트·에너미 애널라이징·아이템 서칭·레이더 스코프·전송 에리어
+- **그 밖의 그림 글자**:
+  - 게임 오버 메뉴, 데이터 화면 제목(데이터 기록·불러오기·지우기, 어드바이스, 데이터베이스)
+  - 미니게임 라벨(제목·점수·시간·승리/패배/무승부 등), 클리어!
+  - 기록 데이터 표시(난이도·에리어·E크리스탈·플레이 타임), 조작 안내 띠(앉기·수면 헤엄치기)
+  - 버스터 에디트 화면(왼팔/오른팔·남은 _칸·편집/기본/종료/취소)
+
+## 일본어로 남는 것
+
+- 다운로드 플레이로 상대 DS 에 보내는 미니게임 문장(별도 글꼴을 써서 이번 범위에서 뺐습니다)
+
+## 확인하지 못한 것
+
+- 실기(DS 본체·플래시 카트)
+- 에뮬레이터로 확인한 범위: 타이틀·메뉴·난이도·캐릭터 선택, 오프닝 대사, 아래 화면 머리, 화자 이름표
+- 다음은 그림 데이터만 렌더해 확인했고, 게임 안에서 띄워 보지는 못했습니다:
+  게임 오버, 데이터 화면, 미니게임, 클리어 표시, 기록 데이터 표시, 조작 안내 띠, 버스터 에디트 화면, 오프닝용 작은 로고
+- 통과 플레이(그레이 편·애시 편 모두)
+
 문제를 발견하면 이슈로 알려 주세요. 가능하면 화면 캡처와 그 장면까지의 진행 상황을 함께 적어 주세요.
 
 ## 빌드
 
-Python 3, `ndspy`, `Pillow`, `keystone-engine` 이 필요합니다. 일본판 롬을 `Rockman ZX (J).nds` 이름으로 저장소 최상위에 두고:
+Python 3, `ndspy`, `Pillow`, `keystone-engine` 이 필요합니다. 일본판 롬을 `Rockman ZX (J).nds`·`Rockman ZX Advent (J).nds`
+이름으로 저장소 최상위에 두고, 원문 덤프를 만든 뒤 빌드합니다.
+
+```bash
+python tools/dump_jp.py zx
+```
 
 ```bash
 python tools/build_zx.py
 ```
 
-결과는 `out/zx_kr.nds` 이고, 위 표의 CRC32 와 같아야 합니다.
+```bash
+python tools/dump_jp.py zxa
+```
+
+```bash
+python tools/build_zxa.py
+```
+
+결과는 `out/zx_kr.nds`·`out/zxa_kr.nds` 이고, 위 표의 CRC32 와 같아야 합니다.
 
 | 위치 | 내용 |
 |---|---|
-| `data/ko/zx/*.txt` | 번역 원고(`;JP` 원문 아래가 번역) |
-| `tools/build_zx.py`, `tools/zxhook.s` | 한글 출력 엔진(ARM9 훅)과 빌드 |
-| `tools/gfx_*.py`, `tools/logo_zx.py`, `tools/nameplate_zx.py` | 그림 글자·화자 이름표 |
+| `data/ko/zx/*.txt`, `data/ko/zxa/*.txt` | 번역 원고(`;JP` 원문 아래가 번역) |
+| `tools/build_zx.py`, `tools/zxhook.s` / `tools/build_zxa.py`, `tools/zxahook.s` | 한글 출력 엔진(ARM9 훅)과 빌드 |
+| `tools/gfx_*.py`, `tools/logo_zx*.py`, `tools/nameplate_zx*.py` | 그림 글자·로고·화자 이름표 |
 | `HANDOFF.md` | 형식·엔진·그림 파일 조사 기록 |
 
 ## 라이선스·감사
 
 - 한글 글꼴: [갈무리(Galmuri)](https://github.com/quiple/galmuri), SIL Open Font License 1.1 (`LICENSE-Galmuri.txt`)
-- 록맨 ZX 는 CAPCOM 의 상표·저작물입니다. 이 저장소는 비공식 팬 번역이며 게임 데이터는 포함하지 않습니다.
+- 록맨 ZX·록맨 ZX 어드벤트는 CAPCOM 의 상표·저작물입니다. 이 저장소는 비공식 팬 번역이며 게임 데이터는 포함하지 않습니다.
