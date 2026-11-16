@@ -262,3 +262,4 @@ def apply(rom):
     sub_oth(rom)
     mg_txt(rom)
     title_menu(rom)
+    import logo_zxa; logo_zxa.apply(rom)
