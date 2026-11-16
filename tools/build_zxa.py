@@ -228,6 +228,7 @@ def main():
     m9.sections.append(ndspy.code.MainCodeFile.Section(sec, HOOK_BASE, 0))
     rom.arm9 = m9.save(compress=False)
     os.makedirs(os.path.dirname(a.o), exist_ok=True)
+    import gfx_zxa; gfx_zxa.apply(rom)                                    # 그림 글자
     rom.saveToFile(a.o)
     out = open(a.o, 'rb').read()
     print(f'출력 {a.o} {len(out)} CRC {zlib.crc32(out):08X} 훅 {len(code)} 바이트, 아레나 시작 {arena_lo:#x}')
