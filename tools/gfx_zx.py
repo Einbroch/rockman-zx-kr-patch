@@ -106,3 +106,25 @@ def apply(rom):
         assert len(new) == o1 - o0
         F[o0:o1] = new
     rom.files[fid] = bytes(F)
+    buster_edit_overlay(rom)
+
+
+# 버스터 에디트 화면에서 고른 버튼 위에 겹치는 강조 글자(obj_fnt 221). 레코드 타일 번호는 32바이트 단위이고 속성 bit0 =
+# 타일 bit8(어드벤트에서 확인한 규칙; 예전 128바이트 단위 해석으로는 조립이 안 맞았다). 글자는 32x16 블록 + 꼬리 조각,
+# 바탕 투명(0)·외곽선 1·속 4(음영 2·3). 표기는 배경 라벨(elf.bin)과 같게.
+OVERLAY_221 = [([(0x08, 32, 16)], '왼팔'), ([(0x00, 32, 16)], '오른팔'),
+               ([(0x20, 32, 16), (0x6c, 16, 16)], '편집'), ([(0x38, 32, 16), (0x80, 16, 16)], '기본'),
+               ([(0x48, 32, 16), (0x40, 32, 16)], '종료')]
+
+
+def buster_edit_overlay(rom):
+    import gfx_zxa
+    fid = rom.filenames.idOf('obj_fnt.bin'); F = bytearray(rom.files[fid])
+    a, b = gfx_zxa.obj_entry(F, 221); e = memoryview(F)[a:b]
+    h = struct.unpack_from('<5I', e, 0); tiles = e[h[0]:h[0] + (h[1] & 0xffff)]
+    for pieces, text in OVERLAY_221:
+        P = gfx_zxa.pieces_px(tiles, pieces); W = len(P[0])
+        f = next(f for f in ('Galmuri11', 'Galmuri9', 'Galmuri7') if text_mask(text, f, 1)[0] + 2 <= W)
+        gfx_zxa.relabel(P, text, (0, 16), 0, 4, 1, {1, 2, 3, 4}, xr=(0, W), font=f)
+        gfx_zxa.put_pieces(tiles, pieces, P)
+    rom.files[fid] = bytes(F)
