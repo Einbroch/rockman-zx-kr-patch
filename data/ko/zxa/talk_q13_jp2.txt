@@ -1,0 +1,27 @@
+## 0
+;= talk_q13_jp1 0
+
+## 1
+;= talk_q13_jp1 1
+
+## 2
+;= talk_q13_jp1 2
+
+## 3
+;= talk_q13_jp1 3
+
+## 4
+;= talk_q13_jp1 4
+
+## 5
+;= talk_q13_jp1 5
+
+## 6
+;= talk_q13_jp1 6
+
+## 7
+;= talk_q13_jp1 6
+
+## 8
+;= talk_q13_jp1 6
+

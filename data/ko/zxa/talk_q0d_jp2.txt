@@ -1,0 +1,39 @@
+## 0
+;= talk_q0d_jp1 0
+
+## 1
+;= talk_q0b_jp1 11
+
+## 2
+;= talk_q0b_jp1 12
+
+## 3
+;= talk_q0b_jp1 13
+
+## 4
+;= talk_q0b_jp1 14
+
+## 5
+;= talk_q0d_jp1 5
+
+## 6
+;= talk_q0d_jp1 6
+
+## 7
+;= talk_q0d_jp1 7
+
+## 8
+;= talk_q0d_jp1 8
+
+## 9
+;= talk_q0d_jp1 9
+
+## 10
+;= talk_q0d_jp1 10
+
+## 11
+;= talk_q0d_jp1 11
+
+## 12
+;= talk_q0d_jp1 12
+

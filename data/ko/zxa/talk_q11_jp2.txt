@@ -1,0 +1,57 @@
+## 0
+;= talk_q11_jp1 0
+
+## 1
+;= talk_q11_jp1 1
+
+## 2
+;= talk_q11_jp1 2
+
+## 3
+;= talk_q11_jp1 3
+
+## 4
+;= talk_q11_jp1 3
+
+## 5
+;= talk_q11_jp1 3
+
+## 6
+;= talk_q11_jp1 3
+
+## 7
+;= talk_q11_jp1 7
+
+## 8
+;= talk_q11_jp1 7
+
+## 9
+;= talk_q11_jp1 7
+
+## 10
+;= talk_q11_jp1 10
+
+## 11
+;= talk_q11_jp1 11
+
+## 12
+;= talk_q11_jp1 11
+
+## 13
+;= talk_q11_jp1 11
+
+## 14
+;= talk_q11_jp1 14
+
+## 15
+;= talk_q11_jp1 15
+
+## 16
+;= talk_q11_jp1 16
+
+## 17
+;= talk_q11_jp1 17
+
+## 18
+;= talk_q11_jp1 18
+

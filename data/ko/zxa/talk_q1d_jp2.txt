@@ -1,0 +1,12 @@
+## 0
+;= talk_q1d_jp1 0
+
+## 1
+;= talk_q1d_jp1 1
+
+## 2
+;= talk_q1d_jp1 2
+
+## 3
+;= talk_q1d_jp1 3
+

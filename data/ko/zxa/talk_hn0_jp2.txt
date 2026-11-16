@@ -1,0 +1,196 @@
+## 0
+;= talk_hn0_jp1 0
+
+## 1
+;= talk_hn0_jp1 1
+
+## 2
+;= talk_hn0_jp1 2
+
+## 3
+;= talk_hn0_jp1 3
+
+## 4
+;= talk_hn0_jp1 4
+
+## 5
+;= talk_hn0_jp1 5
+
+## 6
+;= talk_hn0_jp1 6
+
+## 7
+;= talk_hn0_jp1 7
+
+## 8
+;= talk_hn0_jp1 8
+
+## 9
+;= talk_hn0_jp1 8
+
+## 10
+;= talk_hn0_jp1 8
+
+## 11
+;= talk_hn0_jp1 11
+
+## 12
+;= talk_hn0_jp1 12
+
+## 13
+;= talk_hn0_jp1 13
+
+## 14
+;= talk_hn0_jp1 14
+
+## 15
+;= talk_hn0_jp1 15
+
+## 16
+;= talk_hn0_jp1 16
+
+## 17
+;= talk_hn0_jp1 17
+
+## 18
+;= talk_hn0_jp1 18
+
+## 19
+;= talk_hn0_jp1 18
+
+## 20
+;= talk_hn0_jp1 20
+
+## 21
+;= talk_hn0_jp1 20
+
+## 22
+;= talk_hn0_jp1 22
+
+## 23
+;= talk_hn0_jp1 23
+
+## 24
+;= talk_hn0_jp1 23
+
+## 25
+;= talk_hn0_jp1 23
+
+## 26
+;= talk_hn0_jp1 26
+
+## 27
+;= talk_hn0_jp1 27
+
+## 28
+;= talk_hn0_jp1 28
+
+## 29
+;= talk_hn0_jp1 29
+
+## 30
+;= talk_hn0_jp1 30
+
+## 31
+;= talk_hn0_jp1 31
+
+## 32
+;= talk_hn0_jp1 32
+
+## 33
+;= talk_hn0_jp1 33
+
+## 34
+;= talk_hn0_jp1 33
+
+## 35
+;= talk_hn0_jp1 35
+
+## 36
+;= talk_hn0_jp1 36
+
+## 37
+;= talk_hn0_jp1 37
+
+## 38
+;= talk_hn0_jp1 38
+
+## 39
+;= talk_hn0_jp1 39
+
+## 40
+;= talk_hn0_jp1 40
+
+## 41
+;= talk_hn0_jp1 41
+
+## 42
+;= talk_hn0_jp1 42
+
+## 43
+;= talk_hn0_jp1 43
+
+## 44
+;= talk_hn0_jp1 43
+
+## 45
+;= talk_hn0_jp1 43
+
+## 46
+;= talk_hn0_jp1 43
+
+## 47
+;= talk_hn0_jp1 47
+
+## 48
+;= talk_hn0_jp1 48
+
+## 49
+;= talk_hn0_jp1 49
+
+## 50
+;= talk_hn0_jp1 49
+
+## 51
+;= talk_hn0_jp1 49
+
+## 52
+;= talk_hn0_jp1 52
+
+## 53
+;= talk_hn0_jp1 53
+
+## 54
+;= talk_hn0_jp1 54
+
+## 55
+;= talk_hn0_jp1 55
+
+## 56
+;= talk_hn0_jp1 56
+
+## 57
+;JP {F2:02}{F3:40}{F8:22}よお！
+;JP 待ってたぜ！
+;JP アネさん！{p}
+;JP {F2:02}{F3:40}{F8:22}見てくれよ！
+;JP 列車のシュウリはカンペキだ！
+;JP いつでも発車できるぜ！
+
+## 58
+;= talk_hn0_jp1 58
+
+## 59
+;JP {F2:02}{F3:40}{F8:22}よお！
+;JP アネさん！
+;JP いつでも発車できるぜ！
+
+## 60
+;= talk_hn0_jp1 58
+
+## 61
+;= talk_hn0_jp1 61
+
+## 62
+;= talk_hn0_jp1 62
+

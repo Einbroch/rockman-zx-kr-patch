@@ -1,0 +1,15 @@
+## 0
+;= talk_ex0_jp1 0
+
+## 1
+;= talk_ex0_jp1 1
+
+## 2
+;= talk_ex0_jp1 2
+
+## 3
+;= talk_ex0_jp1 3
+
+## 4
+;= talk_ex0_jp1 4
+
