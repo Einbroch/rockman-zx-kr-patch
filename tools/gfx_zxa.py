@@ -208,7 +208,57 @@ def mg_txt(rom):
     rom.files[fid] = A.build()
 
 
+# 타이틀 메뉴(obj_fnt 203). 아래 화면 OBJ 는 1D·32바이트 단위라 OAM 타일 번호 = 이 항목의 타일 번호.
+# 문자열 = 왼쪽부터 조각(첫 타일, 폭, 높이) — 조각 안 타일은 행 우선. 32x16 블록 b 는 (b*8, 32, 16).
+B = lambda *bs: [(b * 8, 32, 16) for b in bs]
+TITLE_PIECES = [(B(8, 7, 6, 5, 4) + [(0x100, 16, 16)], 'START 버튼을 누르세요'), (B(12, 11), '처음부터'),
+                (B(16, 15), '이어서'), (B(18, 17), '미니게임'), (B(21, 20, 19) + [(0x174, 8, 16)], '비기너 모드'),
+                (B(24, 23, 22) + [(0x178, 8, 16)], '매니아 모드'), (B(27, 26, 25) + [(0x172, 8, 16)], '익스퍼트 모드'),   # 꼬리 8x16 은 OAM 실측(매니아는 0x178 추정)
+                (B(29) + [(0x134, 16, 16), (0x17c, 8, 16)], '그레이'),          # 캐릭터 선택 버튼(OAM 실측)
+                (B(28) + [(0x130, 16, 16), (0x176, 8, 16)], '애시')]
+
+
+def obj_entry(F, i):
+    o0, o1 = [struct.unpack_from('<I', F, 4 + 4 * j)[0] for j in (i, i + 1)]
+    assert not o0 & 0x80000000, ('압축된 obj 항목', i)
+    return o0 & 0x7fffffff, o1 & 0x7fffffff
+
+
+def pieces_px(tiles, pieces):
+    W = sum(w for _, w, _ in pieces); H = max(h for _, _, h in pieces)
+    P = [[0] * W for _ in range(H)]; x0 = 0
+    for t0, w, h in pieces:
+        for k in range((w // 8) * (h // 8)):
+            T = tile_px(tiles, t0 + k)
+            for y in range(8):
+                for x in range(8): P[(k // (w // 8)) * 8 + y][x0 + (k % (w // 8)) * 8 + x] = T[y][x]
+        x0 += w
+    return P
+
+
+def put_pieces(tiles, pieces, P):
+    x0 = 0
+    for t0, w, h in pieces:
+        for k in range((w // 8) * (h // 8)):
+            t = t0 + k; tiles[t * 32:t * 32 + 32] = tile_bytes(P, x0 + (k % (w // 8)) * 8, (k // (w // 8)) * 8)
+        x0 += w
+
+
+def title_menu(rom):
+    """타이틀 메뉴·난이도·캐릭터 선택 글자: 바탕 d, 글자 속 c(음영 a·b), 외곽선 9."""
+    fid = rom.filenames.idOf('obj_fnt.bin'); F = bytearray(rom.files[fid])
+    a, b = obj_entry(F, 203); e = memoryview(F)[a:b]
+    h = struct.unpack_from('<5I', e, 0); tiles = e[h[0]:h[0] + (h[1] & 0xffff)]
+    for pieces, text in TITLE_PIECES:
+        P = pieces_px(tiles, pieces); W = len(P[0])
+        f = next(f for f in ('Galmuri11', 'Galmuri9', 'Galmuri7') if gfx_zx.text_mask(text, f, 1)[0] + 2 <= W)
+        relabel(P, text, (0, 15), 0xd, 0xc, 9, {9, 0xa, 0xb, 0xc}, xr=(0, W), font=f)
+        put_pieces(tiles, pieces, P)
+    rom.files[fid] = bytes(F)
+
+
 def apply(rom):
     ls_txt(rom)
     sub_oth(rom)
     mg_txt(rom)
+    title_menu(rom)
