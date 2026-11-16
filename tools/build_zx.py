@@ -12,7 +12,7 @@ import sys, os, re, json, struct, argparse
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
 import ndspy.rom, ndspy.code
-import zxtext, kfont12, asm, gfx_zx, gfx_sub, gfx_bg, logo_zx
+import zxtext, kfont12, asm, gfx_zx, gfx_sub, gfx_bg, logo_zx, nameplate_zx
 
 SRC_ROM = os.path.join(ROOT, 'Rockman ZX (J).nds')
 SRC_CRC = 0xB577BBE0
@@ -337,6 +337,7 @@ def main():
     assert arena_lo <= FREE_END
     assert struct.unpack_from('<I', d, ARENA_LO_LIT - 0x02000000)[0] == HOOK_BASE
     put(ARENA_LO_LIT, struct.pack('<I', arena_lo))
+    nameplate_zx.apply(d)          # 대화창 화자 이름표(ARM9 정적 데이터)
     main.data = bytes(d)
     m9.sections.append(ndspy.code.MainCodeFile.Section(sec, HOOK_BASE, 0))
     rom.arm9 = m9.save(compress=False)

@@ -9,7 +9,7 @@
 
 | 원본 롬 | 패치 | 결과 |
 |---|---|---|
-| `Rockman ZX (J)` 67,108,864바이트, CRC32 `B577BBE0` | `patch/zx_ko.xdelta` | 67,496,264바이트, CRC32 `391CF460` |
+| `Rockman ZX (J)` 67,108,864바이트, CRC32 `B577BBE0` | `patch/zx_ko.xdelta` | 67,496,264바이트, CRC32 `2D1C2C99` |
 
 xdelta UI 또는 xdelta3 로 일본판 원본에 적용합니다.
 
@@ -17,7 +17,7 @@ xdelta UI 또는 xdelta3 로 일본판 원본에 적용합니다.
 xdelta3 -d -s "Rockman ZX (J).nds" patch/zx_ko.xdelta "Rockman ZX (K).nds"
 ```
 
-결과 SHA-1: `BF74272008E551A2F4793D44B3F1EE3D755DA200`
+결과 SHA-1: `D6FD6D20140B458A7541B82CD18CC81AA872E387`
 
 ## 들어간 것
 
@@ -37,11 +37,12 @@ xdelta3 -d -s "Rockman ZX (J).nds" patch/zx_ko.xdelta "Rockman ZX (K).nds"
   - 플루브 연구소(수리 화면), 시크릿 디스크 탭
   - 퍼즐 미니게임 라벨
   - 스테이지 표지(최단 기록·최고 점수)
+  - 버스터 에디트 화면 라벨(남은 _칸·왼팔/오른팔·편집/기본/종료)
+- **대화창 화자 이름표**: 88명(ARM9 안의 작은 글꼴과 이름 표를 고침)
 
 ## 일본어로 남는 것
 
-- 버스터 에디트 화면(모델 FX)의 그림 글자, 그리고 모델 능력 화면 일부 조각
-- 대화창 화자 이름표(얼굴 그림에 들어 있는 이름)
+- 버스터 에디트 화면(모델 FX)에서 고른 버튼 위에 겹치는 강조 글자(스프라이트)
 
 ## 확인하지 못한 것
 
@@ -51,6 +52,7 @@ xdelta3 -d -s "Rockman ZX (J).nds" patch/zx_ko.xdelta "Rockman ZX (K).nds"
   - 오프닝
   - 첫 스테이지 대사
   - 서브 화면 네 쪽
+  - 대화창 화자 이름표
 - 다음 화면은 그림 데이터만 렌더해 확인했고, 게임 안에서 띄워 보지는 못했습니다:
   - 게임 오버
   - 기록 화면
@@ -59,6 +61,7 @@ xdelta3 -d -s "Rockman ZX (J).nds" patch/zx_ko.xdelta "Rockman ZX (K).nds"
   - 시크릿 디스크
   - 퍼즐
   - 스테이지 표지
+  - 버스터 에디트 화면
 - 통과 플레이
 
 문제를 발견하면 이슈로 알려 주세요. 가능하면 화면 캡처와 그 장면까지의 진행 상황을 함께 적어 주세요.
@@ -77,7 +80,7 @@ python tools/build_zx.py
 |---|---|
 | `data/ko/zx/*.txt` | 번역 원고(`;JP` 원문 아래가 번역) |
 | `tools/build_zx.py`, `tools/zxhook.s` | 한글 출력 엔진(ARM9 훅)과 빌드 |
-| `tools/gfx_*.py`, `tools/logo_zx.py` | 그림 글자 |
+| `tools/gfx_*.py`, `tools/logo_zx.py`, `tools/nameplate_zx.py` | 그림 글자·화자 이름표 |
 | `HANDOFF.md` | 형식·엔진·그림 파일 조사 기록 |
 
 ## 라이선스·감사

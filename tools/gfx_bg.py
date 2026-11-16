@@ -387,7 +387,60 @@ def puzzle(raw):
     return A.build()
 
 
-JOBS = {'g_over.bin': g_over, 'g_back.bin': g_back, 'miss.bin': miss, 'repair.bin': repair, 'sec_disk.bin': sec_disk, 'h01.bin': h01, 'i04.bin': i04, 'puzzle.bin': puzzle}
+# ---------------------------------------------------------------- 버스터 에디트(elf.bin 항목4 그림0 4bpp + 항목5 맵 8·10·11)
+# 라벨: 바탕 3, 글자 D(가장자리 C·9), 외곽선 6. のこり_マス 의 숫자 칸(x 56..63)은 게임이 숫자를 찍는다.
+ELF_BOX = [  # (x0, x1, y0, y1, 글자, 정렬)  y 는 글자(외곽선 포함) 행 범위
+    (21, 55, 27, 39, '남은', 'r'), (64, 86, 27, 39, '칸', 'l'),            # のこり / マス
+    (18, 52, 121, 133, '왼팔', 'c'), (54, 86, 121, 133, '오른팔', 'c'),     # アームL / アームR
+    (17, 79, 160, 173, '편집', 'c'), (95, 165, 160, 173, '기본', 'c'), (181, 245, 160, 173, '종료', 'c'),  # エディット / ノーマル / しゅうりょう
+]
+
+
+def elf(raw):
+    A = Arc(raw); r = A.recs(4)[0]; t4 = r['px']
+    t = bytearray(len(t4) * 2)                       # 4bpp → 8bpp 로 펼쳐 편집
+    for i, b in enumerate(t4): t[2 * i] = b & 15; t[2 * i + 1] = b >> 4
+    m8, m11 = A.map(8, 5), A.map(11, 5)
+    orig8, orig11 = bytes(m8), bytes(m11)
+    cells, P = region(t, m8, 0, 0, 32, 23)
+    for x0, x1, y0, y1, text, al in ELF_BOX:
+        for y in range(y0, y1 + 1):
+            for x in range(x0, x1 + 1):
+                if P[y][x] in (0xd, 0xc, 0x9, 0x6): P[y][x] = 0x3
+        W = x1 - x0 + 1 - 2
+        for gap in (1, 0):
+            pts, w, h = text_pts(text, 'Galmuri9', gap, bold=True)
+            if w <= W: break
+        assert w <= W, (text, w, W)
+        ox = {'l': x0 + 1, 'r': x1 - w, 'c': x0 + (x1 - x0 + 1 - w) // 2}[al]
+        oy = y0 + (y1 - y0 + 1 - h) // 2
+        q = {(x + ox, y + oy) for x, y in pts}
+        for a, b in {(x + dx, y + dy) for x, y in q for dx in (-1, 0, 1) for dy in (-1, 0, 1)} - q:
+            assert x0 - 1 <= a <= x1 + 1 and P[b][a] == 0x3, (text, a, b, P[b][a])
+            P[b][a] = 0x6
+        for a, b in q: P[b][a] = 0xd
+    rows = sorted({y // 8 for b in ELF_BOX for y in range(b[2], b[3] + 1)})
+    sel = [(cx, cy) for cy in rows for cx in range(32)]
+    Psel = [P[cy * 8 + y] for cy in rows for y in range(8)]
+    keep = all_ids(A, skip=(6, 7, 8, 10, 11), ei=5)   # 6·7 은 다른 그림판(1·2)의 타일 나열
+    jobs = [(m8, sel, Psel, 32)]
+    for mo_ in (A.map(10, 5), m11):                  # 같은 칸(같은 타일)을 쓰는 맵 10·11 도 같은 그림으로
+        orig = bytes(mo_)
+        same = [(cx, cy) for cx, cy in sel if orig[2 * (cy * 32 + cx):2 * (cy * 32 + cx) + 2] == orig8[2 * (cy * 32 + cx):2 * (cy * 32 + cx) + 2]]
+        if not same: continue
+        Q = [[0] * 8 * len(same) for _ in range(8)]
+        for k, (cx, cy) in enumerate(same):
+            for y in range(8):
+                for x in range(8): Q[y][k * 8 + x] = P[cy * 8 + y][cx * 8 + x]
+        jobs.append((mo_, same, Q, len(same)))
+    add = assign(t, jobs, [m8, A.map(10, 5), m11], keep=keep)
+    assert max(t[i] for i in range(len(t))) < 16
+    r['px'] = bytearray(t[2 * i] | t[2 * i + 1] << 4 for i in range(len(t) // 2))
+    print(f"elf: 그림0 타일 {len(t4) // 32} -> {len(t) // 64} (+{add})")
+    return A.build()
+
+
+JOBS = {'g_over.bin': g_over, 'g_back.bin': g_back, 'miss.bin': miss, 'repair.bin': repair, 'sec_disk.bin': sec_disk, 'h01.bin': h01, 'i04.bin': i04, 'puzzle.bin': puzzle, 'elf.bin': elf}
 
 
 def apply(rom):
