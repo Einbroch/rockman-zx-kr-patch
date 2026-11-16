@@ -1,0 +1,12 @@
+# 롬·세이브·상태·빌드 결과·배포 zip 은 저장소에 넣지 않는다 (배포는 GitHub 릴리즈로; patch/zx_ko.xdelta 만 포함)
+*.nds
+*.sav
+*.dst
+*.zip
+/out/
+/dist/
+/work/
+__pycache__/
+# 원문 덤프(롬에서 tools/dump_jp.py 로 다시 만든다)
+data/zx_jp.json
+data/zxa_jp.json
