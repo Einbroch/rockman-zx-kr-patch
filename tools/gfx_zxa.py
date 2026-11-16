@@ -257,9 +257,107 @@ def title_menu(rom):
     rom.files[fid] = bytes(F)
 
 
+# 캐릭터 선택 무기 설명(obj 203 프레임 108~115 그레이, 120~127 애시 — 한 자씩 찍히는 애니메이션).
+# 레코드(4바이트: 타일 u8, 속성, x, y)의 속성 bit0 = 타일 번호 bit8 → 설명 조각 타일은 0x100+번호.
+# 원래는 8x8·8x16·16x16 조각을 글자 모양대로 겹쳐 놓았고 「ー」 등을 두 캐릭터 문구가 공유한다.
+# → 줄마다 8x16 조각을 가로로 늘어놓는 배치로 바꾸고, 설명 글자만 쓰던 타일 중 연속 두 칸을 골라 쓴다.
+#   프레임별 레코드 수는 그대로 두고, 원래 그 프레임에 보이던 글자 끝 x 까지의 조각만 보이게(나머지는 빈 8x8).
+DESC = {'grey': (range(108, 116), [('버스터 샷', -86, (-87, -83)), ('공격:', -74, (-74, -71)), ('연사:', -62, (-62, -59))]),
+        'ashe': (range(120, 128), [('레이저 샷', 36, (35, 39)), ('공격:', 48, (48, 51)), ('연사:', 60, (60, 63))])}
+DESC_X0 = -35
+STAR_TILES = {0x19e, 0x1af}
+
+
+def _recs(d):
+    hs = struct.unpack_from('<I', d, 0)[0]; tb = hs + 4
+    n = struct.unpack_from('<H', d, tb)[0] // 4; out = []
+    for k in range(n):
+        off, cnt = struct.unpack_from('<HH', d, tb + 4 * k)
+        out.append([(tb + off + 4 * i,) + struct.unpack_from('<BBbb', d, tb + off + 4 * i) for i in range(cnt)])
+    return out
+
+
+def _obj_tiles(t, a):
+    import objcell
+    w, h = objcell.SIZES[(a >> 6) & 3][(a >> 4) & 3]
+    T0 = t | ((a & 1) << 8)
+    return [T0 + k for k in range((w // 8) * (h // 8))], w
+
+
+def desc_lines(rom):
+    fid = rom.filenames.idOf('obj_fnt.bin'); F = bytearray(rom.files[fid])
+    did = rom.filenames.idOf('obj_dat.bin'); Dall = bytearray(rom.files[did])
+    a, b = obj_entry(F, 203); e = memoryview(F)[a:b]
+    h = struct.unpack_from('<5I', e, 0); tiles = e[h[0]:h[0] + (h[1] & 0xffff)]
+    da, db = obj_entry(Dall, 203); d = memoryview(Dall)[da:db]
+    R = _recs(bytes(d))
+    def line_of(who, y):
+        for k, (_, y0, (ya, yb)) in enumerate(DESC[who][1]):
+            if ya <= y <= yb: return k
+    # 설명 글자 조각 타일 / 그 밖의 레코드가 쓰는 타일
+    text_slots = {}; text_tiles = set(); other = set()
+    for who, (frs, lines) in DESC.items():
+        for f in frs:
+            for rec in R[f]:
+                pos, t, at, x, y = rec; ts, w = _obj_tiles(t, at)
+                k = line_of(who, y)
+                if k is None or set(ts) & STAR_TILES or x >= 50: continue      # x 67~71 은 오른쪽 장식선 조각
+                text_slots.setdefault((who, f, k), []).append(rec); text_tiles |= set(ts)
+    for f, recs in enumerate(R):
+        for pos, t, at, x, y in recs:
+            if any(rec[0] == pos for v in text_slots.values() for rec in v): continue
+            other |= set(_obj_tiles(t, at)[0])
+    for pieces, _ in TITLE_PIECES:
+        for t0, w, hh in pieces: other |= set(range(t0, t0 + (w // 8) * (hh // 8)))
+    pool = sorted(text_tiles - other)
+    pairs = []; i = 0
+    while i < len(pool) - 1:
+        if pool[i + 1] == pool[i] + 1: pairs.append(pool[i]); i += 2
+        else: i += 1
+    singles = [q for q in pool if all(q not in (p, p + 1) for p in pairs)]
+    # 문구별 조각 그림(같은 문구는 두 캐릭터가 공유)
+    objs = {}
+    for who, (frs, lines) in DESC.items():
+        for text, y0, _ in lines:
+            if text in objs: continue
+            px, tw, th = styled(text, 0xc, 9, 'Galmuri9', 1)
+            n = (tw + 7) // 8; W = n * 8
+            P = [[0] * W for _ in range(16)]
+            for (x, y), v in px.items(): P[y][x] = v
+            got = []
+            for k in range(n):
+                assert pairs, '설명 조각 타일 부족'
+                T = pairs.pop(0)
+                tiles[T * 32:T * 32 + 32] = tile_bytes(P, k * 8, 0)
+                tiles[(T + 1) * 32:(T + 1) * 32 + 32] = tile_bytes(P, k * 8, 8)
+                got.append(T)
+            objs[text] = got
+    blank = (singles or pairs).pop(0); tiles[blank * 32:blank * 32 + 32] = bytes(32)
+    for q in singles + [p for p in pairs] + [p + 1 for p in pairs]:      # 안 쓰는 설명 타일은 비운다
+        tiles[q * 32:q * 32 + 32] = bytes(32)
+    # 프레임 레코드
+    for who, (frs, lines) in DESC.items():
+        for f in frs:
+            for k, (text, y0, _) in enumerate(lines):
+                slots = text_slots.get((who, f, k), [])
+                if not slots: continue
+                ext = max(x + _obj_tiles(t, at)[1] for _, t, at, x, y in slots)
+                vis = [(T, DESC_X0 + 8 * j) for j, T in enumerate(objs[text]) if DESC_X0 + 8 * j < ext]
+                vis = vis[:len(slots)]
+                for j, (pos, t, at, x, y) in enumerate(slots):
+                    o = pos - 0
+                    if j < len(vis):
+                        T, X = vis[j]; struct.pack_into('<BBbb', d, o, T & 0xff, 0x81, X, y0)
+                    else:
+                        struct.pack_into('<BBbb', d, o, blank & 0xff, 0x01 | ((blank >> 8) & 0), x, y)
+    rom.files[fid] = bytes(F); rom.files[did] = bytes(Dall)
+    print(f'무기 설명: 남은 조각 타일 쌍 {len(pairs)}')
+
+
 def apply(rom):
     ls_txt(rom)
     sub_oth(rom)
     mg_txt(rom)
     title_menu(rom)
+    desc_lines(rom)
     import logo_zxa; logo_zxa.apply(rom)
