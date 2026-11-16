@@ -42,6 +42,10 @@ SCR0 = FREE[-2]; assert FREE[-1] == SCR0 + 1, '임시 칸 두 개는 이어져�
 FREE = FREE[:-2]
 
 
+# 본체 폰트(font_jp)가 아니라 다운로드 플레이 자기용 font_ds 로 그리는 파일: 원문 유지, 칸 보호 대상 아님
+OTHER_FONT = {'m_mg_ds_jp.bin'}
+
+
 def runs(gs):
     out = []
     for g in gs:
@@ -103,7 +107,7 @@ def main():
             if t is None and m['s']: t = by_src.get(m['s'])
             if t is None:
                 n_jp += 1
-                if re.search(r'[ぁ-んァ-ヶ一-龯]', m['s']): missing.append((f, i))
+                if f not in OTHER_FONT and re.search(r'[ぁ-んァ-ヶ一-龯]', m['s']): missing.append((f, i))
             else: n_tr += 1
             plan[(f, i)] = t
     over = [(f, i, max(bz.line_widths(t)), bz.width_limit(f[:-4], jp[f]['msgs'][i]['s']))
@@ -149,16 +153,32 @@ def main():
         F[0x20 + g * 32:0x20 + g * 32 + 32] = bz.glyph_bytes(ch)
     F[0x20:0x40] = bz.glyph_bytes(' ')
     packed = [bz.pack_glyph(ch) for ch in hangul]
-    free = FREE
+    # 영소문자(0x25..0x3E)·전각 기호(0xE5..0xFF) 중 어떤 원고(번역문·남은 일본어)에도 안 나오는 칸은 한글 칸으로 돌린다.
+    # 숫자·영대문자·'－'·공백(0x00..0x24, 0x3F)은 코드가 직접 찍을 수 있어 늘 보존한다.
+    seen = set()
+    for (f, i), t in plan.items():
+        if t is not None:
+            for mm in re.finditer(r'\{J([0-9A-F]{3})\}', t): seen.add(int(mm[1], 16))
+            for ch in re.sub(r'\{[^}]*\}', '', t):
+                g = CHARMAP.get(bz.norm(ch))
+                if g is not None: seen.add(g)
+        elif f not in OTHER_FONT:
+            s_ = jp[f]['msgs'][i]['s']
+            for mm in re.finditer(r'\{J([0-9A-F]{3})\}', s_): seen.add(int(mm[1], 16))
+            for ch in re.sub(r'\{[^}]*\}', '', s_):
+                if ch in INV: seen.add(INV[ch])
+    reclaim = [g for g in list(range(0x25, 0x3F)) + list(range(0xE5, 0x100)) if g not in seen]
+    print(f'되돌린 칸 {len(reclaim)}개:', ''.join(CM[g] for g in reclaim))
+    free = sorted(FREE + reclaim)
     if a.allow_jp:      # 시험 빌드: 아직 번역 안 된 대사가 쓰는 칸은 덮지 않는다(덮으면 폭 값이 깨져 화면 붕괴, 11/16 실측)
         used = set()
         for (f, i), t in plan.items():
-            if t is None:
+            if t is None and f not in OTHER_FONT:
                 s_ = jp[f]['msgs'][i]['s']
                 for mm in re.finditer(r'\{J([0-9A-F]{3})\}', s_): used.add(int(mm[1], 16))
                 for ch in re.sub(r'\{[^}]*\}', '', s_):
                     if ch in INV: used.add(INV[ch])
-        free = [g for g in FREE if g not in used]
+        free = [g for g in free if g not in used]
     regions = [(FONT + a * 32, (b - a) * 2) for a, b in runs(free)]
     e_start = HOOK_BASE + HOOK_RESERVE
     regions.append((e_start, (FREE_END - e_start) // 16))
