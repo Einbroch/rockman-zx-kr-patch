@@ -197,6 +197,7 @@ def main():
 
     # ---- ARM9 ----
     m9 = rom.loadArm9(); main_ = m9.sections[0]; d = bytearray(main_.data)
+    import nameplate_zxa; nameplate_zxa.apply(d)                         # 대화창 화자 이름표
     def put(addr, bs):
         o = addr - 0x02000000; d[o:o + len(bs)] = bs
     sym = dict(HDR=FONT - 0x20, FONT=FONT, FABUF=FABUF, SCR0=SCR0)
