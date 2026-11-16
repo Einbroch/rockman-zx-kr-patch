@@ -354,10 +354,153 @@ def desc_lines(rom):
     print(f'무기 설명: 남은 조각 타일 쌍 {len(pairs)}')
 
 
+# ---------------------------------------------------------------- obj_fnt 의 6바이트 레코드 항목(형식 0x90)
+# 레코드 (u16 타일, u16 속성, x, y), 크기 = (8<<((속성>>2)&3)) x (8<<((속성>>5)&3)), bit0/1 = 좌우/상하 뒤집기.
+# 타일 데이터는 8x8 타일 순서가 아니라 오브젝트 폭 단위의 행 우선 비트맵(4bpp)이며 위치 = 타일 번호 * 32.
+def _frames6(d):
+    hs = struct.unpack_from('<I', d, 0)[0]; tb = hs + 4
+    n = struct.unpack_from('<H', d, tb)[0] // 4; fr = []
+    for k in range(n):
+        off, cnt = struct.unpack_from('<HH', d, tb + 4 * k); cnt &= 0xff
+        fr.append([struct.unpack_from('<HHbb', d, tb + off + 6 * i) for i in range(cnt)])
+    return fr
+
+
+def _dims6(a): return 8 << ((a >> 2) & 3), 8 << ((a >> 5) & 3)
+
+
+def bitmap_frame(tiles, recs):
+    """프레임 → (캔버스 P, 원점 x0, y0). 뒤집기는 쓰지 않는 프레임만 다룬다."""
+    assert all(a & 3 == 0 for _, a, _, _ in recs), '뒤집힌 조각'
+    xs = [x for _, _, x, _ in recs] + [x + _dims6(a)[0] for _, a, x, _ in recs]
+    ys = [y for _, _, _, y in recs] + [y + _dims6(a)[1] for _, a, _, y in recs]
+    x0, y0 = min(xs), min(ys)
+    P = [[0] * (max(xs) - x0) for _ in range(max(ys) - y0)]
+    for t, a, x, y in reversed(recs):
+        w, h = _dims6(a)
+        for yy in range(h):
+            for xx in range(w):
+                o = t * 32 + (yy * w + xx) // 2
+                P[y - y0 + yy][x - x0 + xx] = (tiles[o] >> ((xx & 1) * 4)) & 15
+    return P, x0, y0
+
+
+def put_bitmap_frame(tiles, recs, P, x0, y0):
+    for t, a, x, y in recs:
+        w, h = _dims6(a)
+        for yy in range(h):
+            for xx in range(w):
+                o = t * 32 + (yy * w + xx) // 2; sh = (xx & 1) * 4
+                tiles[o] = (tiles[o] & ~(15 << sh)) | (P[y - y0 + yy][x - x0 + xx] << sh)
+
+
+def grad(text, fill_rows, outline, font='Galmuri9', scale=2):
+    """큰 글자(갈무리 scale 배) + 8방향 외곽선, 속은 행별 색(fill_rows: y→색, 0 기준)."""
+    w, pts = gfx_zx.text_mask(text, font, 1)
+    x0 = min(p[0] for p in pts); y0 = min(p[1] for p in pts)
+    S = {((x - x0) * scale + i + 1, (y - y0) * scale + j + 1) for x, y in pts for i in range(scale) for j in range(scale)}
+    out = {}
+    for x, y in S:
+        for dx in (-1, 0, 1):
+            for dy in (-1, 0, 1): out.setdefault((x + dx, y + dy), outline)
+    for x, y in S: out[(x, y)] = fill_rows(y)
+    return out, max(q[0] for q in out) + 1, max(q[1] for q in out) + 1
+
+
+OBJ_BITMAP = [   # (항목, 프레임, 글자, 종류)
+    (33, 5, '승리', 'grad'), (33, 6, '패배', 'grad'), (33, 7, '무승부', 'grad'),
+    (193, 3, '클리어!', 'shadow'),
+    (259, 0, '비기너 모드', 'mode'), (259, 1, '익스퍼트 모드', 'mode'), (259, 2, '매니아 모드', 'mode'),
+    (259, 4, ('에리어', 'E크리스탈', '플레이 타임'), 'plate'),
+    (483, 0, '앉기', 'hint'), (483, 1, '수면 헤엄치기', 'hint'),
+]
+
+
+def obj_bitmaps(rom):
+    fid = rom.filenames.idOf('obj_fnt.bin'); F = bytearray(rom.files[fid])
+    D = rom.files[rom.filenames.idOf('obj_dat.bin')]
+    for ent, fno, text, kind in OBJ_BITMAP:
+        a, b = obj_entry(F, ent); e = memoryview(F)[a:b]
+        h = struct.unpack_from('<5I', e, 0); assert h[2] >> 24 == 0x90
+        tiles = e[h[0]:h[0] + (h[1] & 0xffff)]
+        da, db = obj_entry(D, ent); recs = _frames6(bytes(D[da:db]))[fno]
+        P, x0, y0 = bitmap_frame(tiles, recs); W, H = len(P[0]), len(P)
+        if kind == 'grad':          # 바탕 0, 외곽선 2, 안쪽 테 5, 속은 행별 그러데이션
+            rows = {}
+            for y in range(H):
+                c = Counter(v for v in P[y] if v not in (0, 2, 5))
+                if c: rows[y] = c.most_common(1)[0][0]
+            ys = sorted(rows); y_0, y_1 = ys[0], ys[-1]
+            def fr(y, ys=ys, rows=rows, y_0=y_0, y_1=y_1):
+                return rows[min(ys, key=lambda q: abs(q - (y_0 + y)))]
+            for y in range(H):
+                for x in range(W): P[y][x] = 0
+            px, tw, th = grad(text, fr, 2)
+            dx = (W - tw) // 2; dy = max(0, (y_1 + y_0 - th) // 2)
+            for (x, y), v in px.items():
+                if 0 <= dx + x < W and 0 <= dy + y < H: P[dy + y][dx + x] = v
+        elif kind == 'shadow':      # 속 9, 그림자 6·7·8
+            relabel(P, text, (0, H), 0, 9, 6, {6, 7, 8, 9, 0xa}, xr=(0, W), font='Galmuri11',
+                    maker=lambda t, f, o, fo, g: big(t, f, o, 'Galmuri7', 2, 0))
+        elif kind == 'mode':        # 속 a, 외곽선 3, 음영 6·8
+            f = next(f for f in ('Galmuri11', 'Galmuri9') if gfx_zx.text_mask(text, f, 1)[0] + 2 <= W)
+            relabel(P, text, (0, 15), 0, 0xa, 3, {3, 6, 8, 0xa}, xr=(0, W), font=f, left=True)
+        elif kind == 'plate':       # 줄마다 바탕 2 위의 판 4, 속 9, 그림자 7
+            for k, tx in enumerate(text):
+                sub = P[16 * k:16 * k + 16]
+                relabel(sub, tx, (3, 13), 2, 9, 4, {4, 7, 9}, xr=(2, W - 2), font='Galmuri7')
+        elif kind == 'hint':        # 바탕 8, 속 b(음영 a), 외곽선 9 — 양 끝 그러데이션 테는 그대로
+            relabel(P, text, (1, 15), 8, 0xb, 9, {9, 0xa, 0xb}, xr=(20, W - 20), font='Galmuri11')
+        put_bitmap_frame(tiles, recs, P, x0, y0)
+    rom.files[fid] = bytes(F)
+    print(f'스프라이트 라벨(비트맵 형식) {len(OBJ_BITMAP)}개')
+
+
+# 버스터 에디트 화면(obj_fnt 11, 4바이트 레코드·8x8 타일 순서). 조각 = (첫 타일, 폭, 높이), 왼쪽부터.
+# 상자: 테두리 e(왼쪽 0~4열·위아래 행), 안쪽 바탕 9(선택 상태는 무늬), 글자 속 f·외곽선 c·음영 d/e.
+BUSTER_EDIT = [
+    ([(0x08, 32, 16), (0x110, 8, 16)], '왼팔', True), ([(0x10, 32, 16), (0x10e, 8, 16)], '왼팔', True),
+    ([(0x20, 32, 16), (0x128, 8, 16)], '왼팔', True),
+    ([(0x00, 32, 16), (0x12a, 8, 16)], '오른팔', True), ([(0x18, 32, 16), (0x10c, 8, 16)], '오른팔', True),
+    ([(0x28, 32, 16), (0x12e, 8, 16)], '오른팔', True),
+    ([(0x38, 32, 16)], '남은', False), ([(0x30, 32, 16)], '칸', False),
+] + [([(a, 32, 16), (b, 32, 16)], t, True) for (a, b), t in zip(
+    [(0x48, 0x40), (0x58, 0x50), (0x68, 0x60), (0x78, 0x70), (0x88, 0x80), (0x98, 0x90),
+     (0xa8, 0xa0), (0xb8, 0xb0), (0xc8, 0xc0), (0xd8, 0xd0), (0xe8, 0xe0), (0xf8, 0xf0)],
+    ['편집'] * 3 + ['기본'] * 3 + ['종료'] * 3 + ['취소'] * 3)]
+
+
+def buster_edit(rom):
+    fid = rom.filenames.idOf('obj_fnt.bin'); F = bytearray(rom.files[fid])
+    a, b = obj_entry(F, 11); e = memoryview(F)[a:b]
+    h = struct.unpack_from('<5I', e, 0); tiles = e[h[0]:h[0] + (h[1] & 0xffff)]
+    INK = {0xc, 0xd, 0xe, 0xf}
+    for pieces, text, boxed in BUSTER_EDIT:
+        P = pieces_px(tiles, pieces); W = len(P[0])
+        if boxed:
+            sub = [row[5:W - 1] for row in P[1:15]]
+            f = next(f for f in ('Galmuri11', 'Galmuri9', 'Galmuri7') if gfx_zx.text_mask(text, f, 1)[0] + 2 <= len(sub[0]))
+            sw = len(sub[0])                     # 지운 자리 = 그 열의 최빈 색(선택 상태의 세로 줄무늬를 이어 준다)
+            for x in range(sw):
+                c = Counter(row[x] for row in sub if row[x] not in INK)
+                col = c.most_common(1)[0][0] if c else 9
+                for row in sub:
+                    if row[x] in INK: row[x] = col
+            relabel(sub, text, (0, 14), 9, 0xf, 0xc, set(), xr=(0, sw), font=f)
+            for y, row in enumerate(sub): P[1 + y][5:W - 1] = row
+        else:
+            relabel(P, text, (0, 16), 0, 0xf, 0xc, INK, xr=(0, W), font='Galmuri11')
+        put_pieces(tiles, pieces, P)
+    rom.files[fid] = bytes(F)
+    print(f'버스터 에디트 라벨 {len(BUSTER_EDIT)}개')
+
+
 def apply(rom):
     ls_txt(rom)
     sub_oth(rom)
     mg_txt(rom)
     title_menu(rom)
     desc_lines(rom)
+    obj_bitmaps(rom)
+    buster_edit(rom)
     import logo_zxa; logo_zxa.apply(rom)
