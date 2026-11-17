@@ -152,6 +152,27 @@ def load_translations(game, jp):
     return tr
 
 
+# 주인공 호칭 게이트: jp1 = 남자 주인공(반·그레이), jp2 = 여자 주인공(에일·애시) 쪽 대사.
+# 같은 원문을 공유하면 번역도 공유되므로, 원문이 성별 중립인데 번역이 성별을 박으면 반대쪽 주인공에게 틀린 호칭이 나간다
+# (ZX talk_tw2_jp2 26·27 「배달부 오빠」 사례). 형제자매 말은 원문에도 兄·姉 계열이 있을 때만 허용.
+ADDR_EXEMPT = {('zxa', 'talk_m0e_jp2.bin', 10)}   # 「전기 충격 형(刑)」
+def address_gate(game, jp, tr, by_src):
+    M = re.compile(r'오빠|(?<![가-힣])형(?![편성태제식상])'); F = re.compile(r'언니|누나')
+    JM = re.compile(r'兄|にい|あに|アニキ|あんちゃん'); JF = re.compile(r'姉|ねえ|あね')
+    bad = []
+    for f, v in jp.items():
+        for i, m in enumerate(v['msgs']):
+            t = tr.get((f[:-4], i)) or by_src.get(m['s'])
+            if not t or (game, f, i) in ADDR_EXEMPT:
+                continue
+            if f.endswith('_jp2.bin') and M.search(t) and not JM.search(m['s']):
+                bad.append((f, i, M.findall(t)))
+            if f.endswith('_jp1.bin') and F.search(t) and not JF.search(m['s']):
+                bad.append((f, i, F.findall(t)))
+    if bad:
+        sys.exit('주인공 호칭 게이트: 원문은 성별 중립인데 번역이 반대 성별 호칭 %r' % bad)
+
+
 def char_width(ch):
     ch = norm(ch)
     if ch == ' ':
@@ -207,6 +228,7 @@ def main():
             t = tr.get((f[:-4], i))
             if t is not None:
                 by_src.setdefault(m['s'], t)
+    address_gate('zx', jp, tr, by_src)
     plan = {}; n_tr = n_dev = n_jp = 0
     for f, v in jp.items():
         name = f[:-4]; ks = refm.get(f, [])

@@ -100,6 +100,7 @@ def main():
         for i, m in enumerate(v['msgs']):
             t = tr.get((f[:-4], i))
             if t is not None: by_src.setdefault(m['s'], t)
+    bz.address_gate('zxa', jp, tr, by_src)
     plan = {}; n_tr = n_jp = 0; missing = []
     for f, v in jp.items():
         for i, m in enumerate(v['msgs']):

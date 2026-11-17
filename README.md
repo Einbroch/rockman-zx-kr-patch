@@ -13,7 +13,7 @@
 
 | 원본 롬 | 패치 | 결과 |
 |---|---|---|
-| `Rockman ZX (J)` 67,108,864바이트, CRC32 `B577BBE0` | `patch/zx_ko.xdelta` | 67,496,264바이트, CRC32 `1D1FEA60` |
+| `Rockman ZX (J)` 67,108,864바이트, CRC32 `B577BBE0` | `patch/zx_ko.xdelta` | 67,496,264바이트, CRC32 `EB5FA975` |
 
 xdelta UI 또는 xdelta3 로 일본판 원본에 적용합니다.
 
@@ -21,7 +21,7 @@ xdelta UI 또는 xdelta3 로 일본판 원본에 적용합니다.
 xdelta3 -d -s "Rockman ZX (J).nds" patch/zx_ko.xdelta "Rockman ZX (K).nds"
 ```
 
-결과 SHA-1: `A7D6EE3A522DBD2BDEB4425C34E73E5D9C7CB8C2`
+결과 SHA-1: `DB52697B63864294F2E3AF9B72567D463CC9EF05`
 
 ## 들어간 것
 
@@ -43,6 +43,8 @@ xdelta3 -d -s "Rockman ZX (J).nds" patch/zx_ko.xdelta "Rockman ZX (K).nds"
   - 스테이지 표지(최단 기록·최고 점수)
   - 버스터 에디트 화면 라벨(남은 _칸·왼팔/오른팔·편집/기본/종료)과 고른 버튼 위 강조 글자
 - **대화창 화자 이름표**: 88명(ARM9 안의 작은 글꼴과 이름 표를 고침)
+- **주인공 호칭**: 반·에일이 같은 대사를 쓰는 곳에서 에일에게는 「언니」「누나」로 부릅니다(v0.9.3).
+  퀘스트에서 아이가 부르는 「おにいちゃん」은 원작에서도 에일에게 그대로 쓰이지만, 이 패치는 에일 쪽만 「누나」로 옮겼습니다.
 
 ## 일본어로 남는 것
 
