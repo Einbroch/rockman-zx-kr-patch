@@ -76,13 +76,13 @@ xdelta3 -d -s "Rockman ZX (J).nds" patch/zx_ko.xdelta "Rockman ZX (K).nds"
 
 | 원본 롬 | 패치 | 결과 |
 |---|---|---|
-| `Rockman ZX Advent (J)` 67,108,864바이트, CRC32 `89C919BC` | `patch/zxa_ko.xdelta` | 67,314,216바이트, CRC32 `32EB5D0C` |
+| `Rockman ZX Advent (J)` 67,108,864바이트, CRC32 `89C919BC` | `patch/zxa_ko.xdelta` | 67,314,216바이트, CRC32 `41792E4D` |
 
 ```bash
 xdelta3 -d -s "Rockman ZX Advent (J).nds" patch/zxa_ko.xdelta "Rockman ZX Advent (K).nds"
 ```
 
-결과 SHA-1: `B66A9A1E1752602EE583972B1AE197AAD587E7F8`
+결과 SHA-1: `8A55D1CD1B46F4312AA806A3C370BCA24D59D724`
 
 ## 들어간 것
 

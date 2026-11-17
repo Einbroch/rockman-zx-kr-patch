@@ -172,6 +172,14 @@ def address_gate(game, jp, tr, by_src):
         sys.exit('주인공 호칭 게이트: 원문은 성별 중립인데 번역이 반대 성별 호칭 %r' % bad)
 
 
+def lead_gate(game, jp, tr):
+    """번역이 원문과 달리 줄바꿈으로 시작하면 실패: 블록 머리 뒤 빈 줄이 메시지 앞 FC 로 들어간다(ZXA hn3 47 사례)."""
+    bad = [(f, i) for f, v in jp.items() for i, m in enumerate(v['msgs'])
+           if (t := tr.get((f[:-4], i))) and t.startswith(chr(10)) != m['s'].startswith(chr(10))]
+    if bad:
+        sys.exit('앞 줄바꿈 게이트: 원문과 달리 줄바꿈으로 시작하는 번역 %r' % bad)
+
+
 def char_width(ch):
     ch = norm(ch)
     if ch == ' ':
@@ -226,6 +234,7 @@ def main():
             if t is not None:
                 by_src.setdefault(m['s'], t)
     address_gate('zx', jp, tr, by_src)
+    lead_gate('zx', jp, tr)
     plan = {}; n_tr = n_jp = 0
     for f, v in jp.items():
         name = f[:-4]
