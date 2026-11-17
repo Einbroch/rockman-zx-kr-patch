@@ -9,7 +9,6 @@
 | 록맨 ZX (J) | `Rockman ZX (J).nds` (64MiB) | ARZJ | `B577BBE0` |
 | 록맨 ZX 어드벤트 (J) | `Rockman ZX Advent (J).nds` (64MiB) | YZXJ | `89C919BC` |
 
-
 ## 대사 파일 형식 (두 편 공통, `tools/zxtext.py`)
 - `talk_*_jp1/jp2.bin`(jp1=반/아샤 쪽 대사 두 벌), `talk_sys_jp`, `m_sub/m_sdisk/m_sys/m_back/m_rep/m_liv_jp`,
   ZXA 는 `m_mg*/m_over/mg_txt/ls_txt_*` 추가.
@@ -56,7 +55,7 @@
   건너뛰기 0x02007D7C·글자 수 0x02007DB0 통째 대체. 폰트를 직접 읽는 코드는 이 출력기와 로더뿐(오버레이 포함 전수).
 - 원고: `data/ko/zx/<파일>.txt` (`tools/mk_templates.py zx` 로 생성, 고유 1,972메시지). `## 번호` 블록,
   `;` 주석 줄은 무시, 같은 원문은 번역 자동 공유. 빈 블록 = 미번역.
-  `--stage N`, 환경변수 `HOOK_SRC` 는 훅 단계별 디버그용.
+- `--stage N`, 환경변수 `HOOK_SRC` 는 훅 단계별 디버그용.
 - 확인: `out/zx_dev.nds`(CRC 3536BE1F) 오프닝 대사 18장면 한글·좁은 공백 정상(`work/emutest/dev*.png`).
   메뉴 화면은 아직 못 봄(같은 출력기 사용).
 - 줄 폭 게이트: 원문 최장 줄 픽셀 폭 초과를 보고(경고). 창별 실제 한도는 실기로 정할 것.

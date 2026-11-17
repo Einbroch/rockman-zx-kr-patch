@@ -1,9 +1,8 @@
 """록맨 ZX 한글판 빌드.
 
-  python tools/build_zx.py [--dev] [-o out/zx_kr.nds]
+  python tools/build_zx.py [-o out/zx_kr.nds]
 
 번역: data/ko/zx/<파일>.txt  (블록 "## 번호" 뒤 본문, 표기는 data/zx_jp.json 과 같음)
---dev : 번역이 없는 메시지를 참고 문장(work/zx_ref.json, 제어 골격 일치분)으로 채운다. 배포 금지.
 
 한 일: 대사 파일 재조립(A·B·오프셋표), font_jp.bin(영숫자·문장부호 갈무리 비례폭 + 뒤에 한글 글리프),
 ARM9(훅 autoload 구역 + 출력기/글자 수/건너뛰기/FA 패치 + 메인 아레나 시작 이동).
@@ -208,7 +207,6 @@ def skeleton(s):
 def main():
     sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser()
-    ap.add_argument('--dev', action='store_true')
     ap.add_argument('--stage', type=int, default=9, help='디버그: 1=구역+아레나만 2=+출력기 3=+FA 4=+건너뛰기/글자수, 텍스트는 stage<9면 원문')
     ap.add_argument('-o', default=os.path.join(ROOT, 'out', 'zx_kr.nds'))
     a = ap.parse_args()
@@ -219,7 +217,6 @@ def main():
     jp = json.load(open(os.path.join(ROOT, 'data', 'zx_jp.json'), encoding='utf-8'))
     cmj = zxtext.prep(zxtext.load_charmap('zx'), False)
     tr = load_translations('zx', jp)
-    refm = json.load(open(os.path.join(ROOT, 'work', 'zx_ref.json'), encoding='utf-8')) if a.dev else {}
 
     # 메시지별 최종 문자열(한국어) 또는 None(원문 유지)
     by_src = {}
@@ -229,16 +226,14 @@ def main():
             if t is not None:
                 by_src.setdefault(m['s'], t)
     address_gate('zx', jp, tr, by_src)
-    plan = {}; n_tr = n_dev = n_jp = 0
+    plan = {}; n_tr = n_jp = 0
     for f, v in jp.items():
-        name = f[:-4]; ks = refm.get(f, [])
+        name = f[:-4]
         for i, m in enumerate(v['msgs']):
             t = tr.get((name, i))
             if t is None and m['s']:
                 t = by_src.get(m['s'])
-            if t is None and a.dev and i < len(ks) and m['s'] and skeleton(ks[i]) == skeleton(m['s']):
-                t = ks[i]; n_dev += 1
-            elif t is not None:
+            if t is not None:
                 n_tr += 1
             if t is None:
                 n_jp += 1
@@ -256,7 +251,7 @@ def main():
     hangul = collect_hangul([t for t in plan.values() if t])
     assert len(hangul) <= NLEAD * TRAIL
     kr = {ch: k for k, ch in enumerate(hangul)}
-    print(f'번역 {n_tr}, 개발용 채움 {n_dev}, 원문 {n_jp}; 한글 음절 {len(hangul)}')
+    print(f'번역 {n_tr}, 원문 {n_jp}; 한글 음절 {len(hangul)}')
 
     # ---- 대사 파일 ----
     errors = []
@@ -283,8 +278,7 @@ def main():
         from collections import Counter
         c = Counter(errors)
         print('인코딩 불가 문자:', c.most_common(30))
-        if not a.dev:
-            sys.exit('빌드 중단: 인코딩 불가 문자')
+        sys.exit('빌드 중단: 인코딩 불가 문자')
 
     # ---- 폰트 ----
     ffid = rom.filenames.idOf('font_jp.bin'); F = bytearray(rom.files[ffid])
