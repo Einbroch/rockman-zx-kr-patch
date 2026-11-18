@@ -13,7 +13,7 @@
 
 | 원본 롬 | 패치 | 결과 |
 |---|---|---|
-| `Rockman ZX (J)` 67,108,864바이트, CRC32 `B577BBE0` | `patch/zx_ko.xdelta` | 67,496,264바이트, CRC32 `EB5FA975` |
+| `Rockman ZX (J)` 67,108,864바이트, CRC32 `B577BBE0` | `patch/zx_ko.xdelta` | 67,498,824바이트, CRC32 `0994379B` |
 
 xdelta UI 또는 xdelta3 로 일본판 원본에 적용합니다.
 
@@ -76,7 +76,7 @@ xdelta3 -d -s "Rockman ZX (J).nds" patch/zx_ko.xdelta "Rockman ZX (K).nds"
 
 | 원본 롬 | 패치 | 결과 |
 |---|---|---|
-| `Rockman ZX Advent (J)` 67,108,864바이트, CRC32 `89C919BC` | `patch/zxa_ko.xdelta` | 67,314,216바이트, CRC32 `41792E4D` |
+| `Rockman ZX Advent (J)` 67,108,864바이트, CRC32 `89C919BC` | `patch/zxa_ko.xdelta` | 67,320,360바이트, CRC32 `952CD3E0` |
 
 ```bash
 xdelta3 -d -s "Rockman ZX Advent (J).nds" patch/zxa_ko.xdelta "Rockman ZX Advent (K).nds"

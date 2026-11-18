@@ -258,7 +258,16 @@ def apply_small(A):
     print(f'작은 로고: 남은 전용 타일 {len(pool)}')
 
 
+HD = True   # 사용자 제작 HD 로고(art/logo_hd/zxa.png)로 통째로 (logo_hd_nds)
+# 12번 맵(36x9)은 그림1 타일 번호를 순서대로 늘어놓은 꼴이고, 부팅·데모·타이틀·메뉴 내내 VRAM 에 올라오지 않는다
+# (py-desmume, 20프레임마다 VRAM 검색, 11/18). 보호하면 로고 전용 타일이 106개뿐이라 HD 로고에서는 보호하지 않는다.
+
+
 def apply(rom):
     pal = json.load(open(os.path.join(HERE, '..', 'data', 'zxa_logo_pal.json')))
     fid = rom.filenames.idOf('title.bin')
-    rom.files[fid] = apply_title(rom.files[fid], pal)
+    if HD:
+        import logo_hd_nds
+        rom.files[fid] = logo_hd_nds.apply_title(rom.files[fid], pal, 'zxa', LOGO_MAP, (), False, False)
+    else:
+        rom.files[fid] = apply_title(rom.files[fid], pal)

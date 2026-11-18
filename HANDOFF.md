@@ -195,3 +195,8 @@
   사용자 결정(11/17)으로 에일 쪽(talk_q04_jp2 0·4·5·7·9·12, talk_q05_jp2 0·4·5·6·7·12·13)만 「누나」로 옮김.
   ZXA m05 「見所のある男」(원작이 애시에게도 「男」)는 그대로.
 - 결과: ZX v0.9.3 `out/zx_kr.nds` CRC EB5FA975, SHA-1 DB52697B…EF05 (v0.9.2 대비 talk_q04_jp2·talk_q05_jp2·talk_tw2_jp2 만 다름), ZXA 불변(32EB5D0C).
+
+- (11/18) **타이틀 로고를 사용자 제작 HD 한글 로고로** `tools/logo_hd_nds.py`, 원본 `art/logo_hd/{zx,zxa}.png`(logo_zx·logo_zxa `HD = True`, 옛 띠 다시 그리기는 apply_title 로 남김).
+  원래 로고 상자에 맞춰 줄이고(LANCZOS) 캡처 팔레트 표의 색으로, gfx_bg.assign 으로 타일 배정. ZX 100%(슬롯 4, 타일 +1), ZXA 100%(덧붙임 0).
+  **ZXA 12번 맵(36x9)은 보호하지 않는다**: 그림1 타일을 순서대로 늘어놓은 꼴이고 부팅·데모·타이틀·메뉴 내내 VRAM 에 올라오지 않음(py-desmume 20프레임마다 검색). 보호하면 전용 타일 106개뿐.
+  빌드 `out/zx_hd.nds`(CRC 0994379B)·`out/zxa_hd.nds`(CRC 952CD3E0), py-desmume 타이틀 확인. → **ZX v0.9.4 · ZXA v0.9.2 배포** (11/18).

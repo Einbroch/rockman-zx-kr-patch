@@ -140,10 +140,17 @@ def _w32(A, m):
     return struct.unpack_from('<H', e, mo + 4)[0] == 32
 
 
+HD = True   # 사용자 제작 HD 로고(art/logo_hd/zx.png)로 통째로 (logo_hd_nds)
+
+
 def apply(rom):
     pal = json.load(open(os.path.join(HERE, '..', 'data', 'zx_logo_pal.json')))
     fid = rom.filenames.idOf('title.bin')
-    rom.files[fid] = apply_title(rom.files[fid], pal)
+    if HD:
+        import logo_hd_nds
+        rom.files[fid] = logo_hd_nds.apply_title(rom.files[fid], pal, 'zx', 4, REC1_MAPS[:2] + REC1_MAPS[3:], True, True)
+    else:
+        rom.files[fid] = apply_title(rom.files[fid], pal)
     p258 = json.load(open(os.path.join(HERE, '..', 'data', 'zx_logo258_pal.json')))
     fo = rom.filenames.idOf('obj_fnt.bin'); fd = rom.filenames.idOf('obj_dat.bin')
     rom.files[fo] = apply_obj258(rom.files[fo], rom.files[fd], p258)
